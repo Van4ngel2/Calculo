@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interpolação de Newton</title>
+    <style>
+         body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #f06292; /* rosa */
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            width: calc(100% - 22px);
+            color: #fff;
+            background-color: #333;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background: #f06292; /* rosa */
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #ec407a; /* rosa mais escuro ao passar o mouse */
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #666;
+            border-radius: 4px;
+            font-size: 18px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interpolação de Newton</h1>
+        <form id="inputForm">
+            <label for="numPoints">Número de pontos de dados:</label>
+            <input type="number" id="numPoints" name="numPoints" min="2" required>
+            <div id="pointsInputs"></div>
+            <label for="xToInterpolate">Valor de x para interpolação:</label>
+            <input type="number" id="xToInterpolate" name="xToInterpolate" required>
+            <button type="button" onclick="calculateNewton()">Calcular Interpolação Newton</button>
+        </form>
+        <h2>Resultado</h2>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('numPoints').addEventListener('input', function() {
+            const numPoints = parseInt(this.value);
+            const pointsInputs = document.getElementById('pointsInputs');
+            pointsInputs.innerHTML = '';
+
+            for (let i = 0; i < numPoints; i++) {
+                pointsInputs.innerHTML += `
+                    <div>
+                        <label for="x${i}">x_${i}:</label>
+                        <input type="number" id="x${i}" name="x${i}" required>
+                        <label for="y${i}">f(x_${i}):</label>
+                        <input type="number" id="y${i}" name="y${i}" required>
+                    </div>
+                `;
+            }
+        });
+
+        function newtonInterpolation(x_points, y_points, x) {
+            const n = x_points.length;
+            let divided_diff = new Array(n).fill(0).map(() => new Array(n).fill(0));
+
+            for (let i = 0; i < n; i++) {
+                divided_diff[i][0] = y_points[i];
+            }
+
+            for (let j = 1; j < n; j++) {
+                for (let i = 0; i < n - j; i++) {
+                    divided_diff[i][j] = (divided_diff[i + 1][j - 1] - divided_diff[i][j - 1]) / (x_points[i + j] - x_points[i]);
+                }
+            }
+
+            let result = divided_diff[0][0];
+            for (let i = 1; i < n; i++) {
+                let term = divided_diff[0][i];
+                for (let j = 0; j < i; j++) {
+                    term *= (x - x_points[j]);
+                }
+                result += term;
+            }
+            return result;
+        }
+
+        function calculateNewton() {
+            const numPoints = parseInt(document.getElementById('numPoints').value);
+            const x_points = [];
+            const y_points = [];
+
+            for (let i = 0; i < numPoints; i++) {
+                const x = parseFloat(document.getElementById(`x${i}`).value);
+                const y = parseFloat(document.getElementById(`y${i}`).value);
+                x_points.push(x);
+                y_points.push(y);
+            }
+
+            const xToInterpolate = parseFloat(document.getElementById('xToInterpolate').value);
+            const result = newtonInterpolation(x_points, y_points, xToInterpolate);
+
+            document.getElementById('result').innerText = `O valor interpolado em x = ${xToInterpolate.toFixed(2)} é ${result.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
